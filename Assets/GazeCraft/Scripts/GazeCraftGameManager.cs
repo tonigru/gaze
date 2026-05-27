@@ -214,7 +214,7 @@ namespace GazeCraft
 
         private void UpdateLookStatus()
         {
-            var diagnostic = " [" + gazeProvider.LastSource + " events:" + gazeProvider.TobiiEventCount + " xy:" + gazeProvider.LastDisplayPoint.x.ToString("0.00") + "," + gazeProvider.LastDisplayPoint.y.ToString("0.00") + "]\n" + gazeProvider.LastTobiiStatus + "\n" + speechListener.Status;
+            var diagnostic = " [" + gazeProvider.LastSource + " events:" + gazeProvider.TobiiEventCount + " xy:" + gazeProvider.LastDisplayPoint.x.ToString("0.00") + "," + gazeProvider.LastDisplayPoint.y.ToString("0.00") + " offset:" + gazeProvider.DisplayPointOffset.x.ToString("0.00") + "," + gazeProvider.DisplayPointOffset.y.ToString("0.00") + "]\n" + gazeProvider.LastTobiiStatus + "\n" + speechListener.Status;
 
             if (heldPiece != null)
             {

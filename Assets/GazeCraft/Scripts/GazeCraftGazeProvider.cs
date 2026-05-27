@@ -12,6 +12,11 @@ namespace GazeCraft
         [SerializeField] private Camera targetCamera;
         [SerializeField] private bool useMouseFallback = true;
         [SerializeField] private bool preferRawTobiiSdk = true;
+        [SerializeField] private Vector2 displayPointOffset = new Vector2(0f, 0.08f);
+        [SerializeField] private Vector2 displayPointScale = Vector2.one;
+        [SerializeField] private bool applyDefaultVerticalCorrection = true;
+        [SerializeField] private bool allowKeyboardCalibration = true;
+        [SerializeField] private float keyboardCalibrationStep = 0.01f;
 
         private readonly object gazeLock = new();
         private Tobii.Research.IEyeTracker rawEyeTracker;
@@ -24,20 +29,34 @@ namespace GazeCraft
         private Vector2 latestStreamDisplayPoint;
         private bool latestStreamDisplayPointValid;
         private int streamEventCount;
+        private float nextKeyboardCalibrationTime;
 
         public string LastSource { get; private set; } = "none";
         public string LastTobiiStatus { get; private set; } = "not started";
+        public Vector2 LastRawDisplayPoint { get; private set; }
         public Vector2 LastDisplayPoint { get; private set; }
+        public Vector2 DisplayPointOffset => displayPointOffset;
         public int TobiiEventCount => streamEventCount + rawEventCount;
 
         private void Start()
         {
+            if (displayPointScale == Vector2.zero)
+            {
+                displayPointScale = Vector2.one;
+            }
+
+            if (applyDefaultVerticalCorrection && Mathf.Approximately(displayPointOffset.y, 0f))
+            {
+                displayPointOffset.y = 0.08f;
+            }
+
             ConnectStreamEngine();
             ConnectRawTobiiSdk();
         }
 
         private void Update()
         {
+            UpdateKeyboardCalibration();
             streamEyeTracker?.ProcessCallbacks();
         }
 
@@ -223,6 +242,90 @@ namespace GazeCraft
             }
         }
 
+        private Vector3 DisplayPointToWorldPoint(Camera cameraToUse, Vector2 displayPoint)
+        {
+            LastRawDisplayPoint = displayPoint;
+            var calibratedDisplayPoint = ApplyDisplayCalibration(displayPoint);
+            LastDisplayPoint = calibratedDisplayPoint;
+
+            var screenPoint = new Vector3(Screen.width * calibratedDisplayPoint.x, Screen.height * (1f - calibratedDisplayPoint.y), -cameraToUse.transform.position.z);
+            var worldPoint = cameraToUse.ScreenToWorldPoint(screenPoint);
+            worldPoint.z = 0f;
+            return worldPoint;
+        }
+
+        private Vector2 ApplyDisplayCalibration(Vector2 displayPoint)
+        {
+            var centered = displayPoint - new Vector2(0.5f, 0.5f);
+            var calibrated = new Vector2(
+                0.5f + centered.x * displayPointScale.x + displayPointOffset.x,
+                0.5f + centered.y * displayPointScale.y + displayPointOffset.y);
+
+            return new Vector2(Mathf.Clamp01(calibrated.x), Mathf.Clamp01(calibrated.y));
+        }
+
+        private void UpdateKeyboardCalibration()
+        {
+            if (!allowKeyboardCalibration)
+            {
+                return;
+            }
+
+            var keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return;
+            }
+
+            if (keyboard.homeKey.wasPressedThisFrame)
+            {
+                displayPointOffset = new Vector2(0f, 0.08f);
+                return;
+            }
+
+            if (keyboard.endKey.wasPressedThisFrame)
+            {
+                displayPointOffset = Vector2.zero;
+                return;
+            }
+
+            if (Time.unscaledTime < nextKeyboardCalibrationTime)
+            {
+                return;
+            }
+
+            var step = keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed
+                ? keyboardCalibrationStep * 0.25f
+                : keyboardCalibrationStep;
+
+            var delta = Vector2.zero;
+            if (keyboard.leftArrowKey.isPressed)
+            {
+                delta.x -= step;
+            }
+
+            if (keyboard.rightArrowKey.isPressed)
+            {
+                delta.x += step;
+            }
+
+            if (keyboard.upArrowKey.isPressed)
+            {
+                delta.y -= step;
+            }
+
+            if (keyboard.downArrowKey.isPressed)
+            {
+                delta.y += step;
+            }
+
+            if (delta != Vector2.zero)
+            {
+                displayPointOffset += delta;
+                nextKeyboardCalibrationTime = Time.unscaledTime + 0.08f;
+            }
+        }
+
         private bool TryGetStreamEngineWorldPoint(Camera cameraToUse, out Vector3 worldPoint)
         {
             Vector2 displayPoint;
@@ -237,10 +340,7 @@ namespace GazeCraft
                 displayPoint = latestStreamDisplayPoint;
             }
 
-            LastDisplayPoint = displayPoint;
-            var screenPoint = new Vector3(Screen.width * displayPoint.x, Screen.height * (1f - displayPoint.y), -cameraToUse.transform.position.z);
-            worldPoint = cameraToUse.ScreenToWorldPoint(screenPoint);
-            worldPoint.z = 0f;
+            worldPoint = DisplayPointToWorldPoint(cameraToUse, displayPoint);
             return true;
         }
 
@@ -258,10 +358,7 @@ namespace GazeCraft
                 displayPoint = latestRawDisplayPoint;
             }
 
-            LastDisplayPoint = displayPoint;
-            var screenPoint = new Vector3(Screen.width * displayPoint.x, Screen.height * (1f - displayPoint.y), -cameraToUse.transform.position.z);
-            worldPoint = cameraToUse.ScreenToWorldPoint(screenPoint);
-            worldPoint.z = 0f;
+            worldPoint = DisplayPointToWorldPoint(cameraToUse, displayPoint);
             return true;
         }
 
