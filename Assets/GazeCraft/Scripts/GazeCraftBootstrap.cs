@@ -9,7 +9,7 @@ namespace GazeCraft
         [SerializeField] private bool buildOnStart = true;
         [SerializeField] private Sprite fallbackSprite;
 
-        private const string LayoutVersionObjectName = "GazeCraft Reference Layout v3";
+        private const string LayoutVersionObjectName = "GazeCraft Spacious Layout v1";
         private const float ArtPixelsPerUnit = 512f;
         private static readonly Dictionary<string, Sprite> RuntimeSprites = new();
 
@@ -100,7 +100,7 @@ namespace GazeCraft
             if (existing != null)
             {
                 existing.orthographic = true;
-                existing.orthographicSize = 5.8f;
+                existing.orthographicSize = 6.7f;
                 existing.transform.position = new Vector3(0f, 0f, -10f);
                 existing.clearFlags = CameraClearFlags.SolidColor;
                 existing.backgroundColor = new Color(0.015f, 0.028f, 0.045f);
@@ -111,7 +111,7 @@ namespace GazeCraft
             cameraObject.tag = "MainCamera";
             var camera = cameraObject.AddComponent<Camera>();
             camera.orthographic = true;
-            camera.orthographicSize = 5.8f;
+            camera.orthographicSize = 6.7f;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(0.015f, 0.028f, 0.045f);
             cameraObject.AddComponent<AudioListener>();
@@ -140,28 +140,28 @@ namespace GazeCraft
 
             var slotPositions = new[]
             {
-                new Vector3(-1.8f, 3.05f, 0f),
-                new Vector3(0f, 3.05f, 0f),
-                new Vector3(1.8f, 3.05f, 0f),
-                new Vector3(-1.8f, 1.38f, 0f),
-                new Vector3(0f, 1.38f, 0f),
-                new Vector3(1.8f, 1.38f, 0f),
-                new Vector3(-1.8f, -0.29f, 0f),
-                new Vector3(0f, -0.29f, 0f),
-                new Vector3(1.8f, -0.29f, 0f)
+                new Vector3(-2.8f, 3.6f, 0f),
+                new Vector3(0.2f, 3.6f, 0f),
+                new Vector3(3.2f, 3.6f, 0f),
+                new Vector3(-2.8f, 0.8f, 0f),
+                new Vector3(0.2f, 0.8f, 0f),
+                new Vector3(3.2f, 0.8f, 0f),
+                new Vector3(-2.8f, -2f, 0f),
+                new Vector3(0.2f, -2f, 0f),
+                new Vector3(3.2f, -2f, 0f)
             };
 
             var piecePositions = new[]
             {
-                new Vector3(-5.6f, -3.35f, 0f),
-                new Vector3(-4.2f, -3.35f, 0f),
-                new Vector3(-2.8f, -3.35f, 0f),
-                new Vector3(-1.4f, -3.35f, 0f),
-                new Vector3(0f, -3.35f, 0f),
-                new Vector3(1.4f, -3.35f, 0f),
-                new Vector3(2.8f, -3.35f, 0f),
-                new Vector3(4.2f, -3.35f, 0f),
-                new Vector3(5.6f, -3.35f, 0f)
+                new Vector3(-9.6f, -4.95f, 0f),
+                new Vector3(-7.2f, -4.95f, 0f),
+                new Vector3(-4.8f, -4.95f, 0f),
+                new Vector3(-2.4f, -4.95f, 0f),
+                new Vector3(0f, -4.95f, 0f),
+                new Vector3(2.4f, -4.95f, 0f),
+                new Vector3(4.8f, -4.95f, 0f),
+                new Vector3(7.2f, -4.95f, 0f),
+                new Vector3(9.6f, -4.95f, 0f)
             };
 
             var slotSprite = LoadArtSprite("empty_slot");
@@ -226,13 +226,13 @@ namespace GazeCraft
 
         private void CreateBackground()
         {
-            var background = CreateSpriteObject("GazeCraft Neon Background", new Vector3(0f, 0f, 2f), new Vector2(12.5f, 7.05f), Color.white, LoadArtSprite("background_neon"), -20);
+            var background = CreateSpriteObject("GazeCraft Neon Background", new Vector3(0f, 0f, 2f), new Vector2(14f, 8.2f), Color.white, LoadArtSprite("background_neon"), -20);
             background.transform.position = new Vector3(0f, 0f, 2f);
         }
 
         private void CreateReferenceImage()
         {
-            var reference = CreateSpriteObject("Reference Image", new Vector3(-7.05f, 1.35f, 0f), new Vector2(1.28f, 1.28f), Color.white, LoadArtSprite("puzzle_complete"), 2);
+            var reference = CreateSpriteObject("Reference Image", new Vector3(-8.5f, 1.9f, 0f), new Vector2(1.18f, 1.18f), Color.white, LoadArtSprite("puzzle_complete"), 2);
             AttachDropShadow(reference.transform, 1);
             AttachFrame(reference.transform, LoadArtSprite("highlight_frame"), 3, new Vector2(1.01f, 1.01f));
         }
