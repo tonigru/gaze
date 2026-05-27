@@ -14,6 +14,7 @@ namespace GazeCraft
         [SerializeField] private float gazedScaleMultiplier = 1.18f;
 
         private SpriteRenderer spriteRenderer;
+        private SpriteRenderer highlightRenderer;
         private Vector3 homePosition;
         private Vector3 baseScale;
 
@@ -24,6 +25,13 @@ namespace GazeCraft
         private void Awake()
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
+            var highlight = transform.Find("Highlight");
+            if (highlight != null)
+            {
+                highlightRenderer = highlight.GetComponent<SpriteRenderer>();
+                highlightRenderer.enabled = false;
+            }
+
             homePosition = transform.position;
             baseScale = transform.localScale;
         }
@@ -41,7 +49,8 @@ namespace GazeCraft
                 return;
             }
 
-            spriteRenderer.color = isGazed ? gazedColor : normalColor;
+            spriteRenderer.color = normalColor;
+            SetHighlight(isGazed);
             transform.localScale = isGazed ? baseScale * gazedScaleMultiplier : baseScale;
         }
 
@@ -55,6 +64,7 @@ namespace GazeCraft
             IsHeld = true;
             transform.localScale = baseScale * gazedScaleMultiplier;
             spriteRenderer.color = heldColor;
+            SetHighlight(true);
             spriteRenderer.sortingOrder = 20;
         }
 
@@ -81,6 +91,7 @@ namespace GazeCraft
             transform.localScale = baseScale;
             transform.position = slot.transform.position;
             spriteRenderer.color = normalColor;
+            SetHighlight(false);
             spriteRenderer.sortingOrder = 5;
             return true;
         }
@@ -91,7 +102,16 @@ namespace GazeCraft
             transform.localScale = baseScale;
             transform.position = homePosition;
             spriteRenderer.color = normalColor;
+            SetHighlight(false);
             spriteRenderer.sortingOrder = 10;
+        }
+
+        private void SetHighlight(bool enabled)
+        {
+            if (highlightRenderer != null)
+            {
+                highlightRenderer.enabled = enabled;
+            }
         }
     }
 }

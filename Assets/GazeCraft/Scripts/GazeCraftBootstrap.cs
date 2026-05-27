@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,13 +7,64 @@ namespace GazeCraft
     public sealed class GazeCraftBootstrap : MonoBehaviour
     {
         [SerializeField] private bool buildOnStart = true;
-        [SerializeField] private Sprite puzzleSprite;
+        [SerializeField] private Sprite fallbackSprite;
+
+        private static readonly Dictionary<string, Sprite> RuntimeSprites = new();
 
         private void Start()
         {
-            if (buildOnStart && FindAnyObjectByType<GazeCraftGameManager>() == null)
+            if (buildOnStart && NeedsRuntimeBuild())
             {
+                ClearGeneratedRuntimeScene();
                 BuildRuntimeScene();
+            }
+        }
+
+        private bool NeedsRuntimeBuild()
+        {
+            return FindAnyObjectByType<GazeCraftGameManager>() == null
+                || FindObjectsByType<PuzzlePiece>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Length != 9
+                || FindObjectsByType<PuzzleSlot>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Length != 9
+                || GameObject.Find("GazeCraft Neon Background") == null;
+        }
+
+        private void ClearGeneratedRuntimeScene()
+        {
+            DestroyNamed("GazeCraft Game Manager");
+            DestroyNamed("GazeCraft UI");
+            DestroyNamed("Gaze Cursor");
+            DestroyNamed("GazeCraft Neon Background");
+
+            foreach (var piece in FindObjectsByType<PuzzlePiece>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                DestroySafe(piece.gameObject);
+            }
+
+            foreach (var slot in FindObjectsByType<PuzzleSlot>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                DestroySafe(slot.gameObject);
+            }
+        }
+
+        private void DestroyNamed(string objectName)
+        {
+            var obj = GameObject.Find(objectName);
+            if (obj != null)
+            {
+                DestroySafe(obj);
+            }
+        }
+
+        private void DestroySafe(GameObject obj)
+        {
+            if (Application.isPlaying)
+            {
+                obj.SetActive(false);
+                Destroy(obj);
+            }
+            else
+            {
+                DestroyImmediate(obj);
             }
         }
 
@@ -42,8 +94,10 @@ namespace GazeCraft
             if (existing != null)
             {
                 existing.orthographic = true;
-                existing.orthographicSize = 5f;
+                existing.orthographicSize = 5.8f;
                 existing.transform.position = new Vector3(0f, 0f, -10f);
+                existing.clearFlags = CameraClearFlags.SolidColor;
+                existing.backgroundColor = new Color(0.015f, 0.028f, 0.045f);
                 return existing;
             }
 
@@ -51,9 +105,9 @@ namespace GazeCraft
             cameraObject.tag = "MainCamera";
             var camera = cameraObject.AddComponent<Camera>();
             camera.orthographic = true;
-            camera.orthographicSize = 5f;
+            camera.orthographicSize = 5.8f;
             camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(0.08f, 0.1f, 0.12f);
+            camera.backgroundColor = new Color(0.015f, 0.028f, 0.045f);
             cameraObject.AddComponent<AudioListener>();
             cameraObject.transform.position = new Vector3(0f, 0f, -10f);
             return camera;
@@ -75,40 +129,59 @@ namespace GazeCraft
 
         private void CreateBoard()
         {
+            CreateBackground();
+
             var slotPositions = new[]
             {
-                new Vector3(-2.2f, 1.35f, 0f),
-                new Vector3(0f, 1.35f, 0f),
-                new Vector3(2.2f, 1.35f, 0f)
+                new Vector3(-2.25f, 3.05f, 0f),
+                new Vector3(0f, 3.05f, 0f),
+                new Vector3(2.25f, 3.05f, 0f),
+                new Vector3(-2.25f, 1.62f, 0f),
+                new Vector3(0f, 1.62f, 0f),
+                new Vector3(2.25f, 1.62f, 0f),
+                new Vector3(-2.25f, 0.19f, 0f),
+                new Vector3(0f, 0.19f, 0f),
+                new Vector3(2.25f, 0.19f, 0f)
             };
 
             var piecePositions = new[]
             {
-                new Vector3(2.2f, -2.25f, 0f),
-                new Vector3(-2.2f, -2.25f, 0f),
-                new Vector3(0f, -2.25f, 0f)
+                new Vector3(-4.75f, -2.95f, 0f),
+                new Vector3(-3.55f, -2.95f, 0f),
+                new Vector3(-2.35f, -2.95f, 0f),
+                new Vector3(-1.15f, -2.95f, 0f),
+                new Vector3(0.05f, -2.95f, 0f),
+                new Vector3(1.25f, -2.95f, 0f),
+                new Vector3(2.45f, -2.95f, 0f),
+                new Vector3(3.65f, -2.95f, 0f),
+                new Vector3(4.85f, -2.95f, 0f)
             };
+
+            var slotSprite = LoadArtSprite("empty_slot");
+            var highlightSprite = LoadArtSprite("highlight_frame");
 
             for (var i = 0; i < slotPositions.Length; i++)
             {
-                var slot = CreateSquare("Slot " + (i + 1), slotPositions[i], new Vector2(1.45f, 1.45f), new Color(1f, 1f, 1f, 0.22f));
+                var slot = CreateSpriteObject("Slot " + (i + 1), slotPositions[i], new Vector2(1.12f, 1.12f), Color.white, slotSprite, 3);
+                AttachHighlight(slot.transform, highlightSprite, 4, new Vector2(1.05f, 1.05f));
                 slot.AddComponent<BoxCollider2D>();
                 slot.AddComponent<PuzzleSlot>().Configure(i);
             }
 
-            var colors = new[]
+            var pieceOrder = new[]
             {
-                new Color(0.96f, 0.28f, 0.26f),
-                new Color(0.17f, 0.66f, 0.95f),
-                new Color(0.95f, 0.78f, 0.2f)
+                7, 2, 4, 0, 8, 3, 5, 1, 6
             };
 
-            for (var i = 0; i < piecePositions.Length; i++)
+            for (var i = 0; i < pieceOrder.Length; i++)
             {
-                var piece = CreateSquare("Puzzle Piece " + (i + 1), piecePositions[i], new Vector2(1.25f, 1.25f), colors[i]);
-                piece.GetComponent<SpriteRenderer>().sortingOrder = 10;
+                var pieceId = pieceOrder[i];
+                var sprite = LoadArtSprite("puzzle_piece_" + (pieceId + 1));
+                var piece = CreateSpriteObject("Puzzle Piece " + (pieceId + 1), piecePositions[i], new Vector2(0.95f, 0.95f), Color.white, sprite, 10);
+                AttachDropShadow(piece.transform);
+                AttachHighlight(piece.transform, highlightSprite, 22, new Vector2(1.04f, 1.04f));
                 piece.AddComponent<BoxCollider2D>();
-                piece.AddComponent<PuzzlePiece>().Configure(i, piecePositions[i]);
+                piece.AddComponent<PuzzlePiece>().Configure(pieceId, piecePositions[i]);
             }
         }
 
@@ -124,36 +197,81 @@ namespace GazeCraft
             textObject.transform.SetParent(canvasObject.transform, false);
             var text = textObject.AddComponent<Text>();
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.fontSize = 24;
+            text.fontSize = 22;
             text.alignment = TextAnchor.UpperCenter;
-            text.color = Color.white;
+            text.color = new Color(0.86f, 0.98f, 1f);
 
             var rect = text.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0f, 1f);
             rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(0.5f, 1f);
-            rect.anchoredPosition = new Vector2(0f, -18f);
-            rect.sizeDelta = new Vector2(0f, 80f);
+            rect.anchoredPosition = new Vector2(0f, -12f);
+            rect.sizeDelta = new Vector2(0f, 120f);
             return text;
         }
 
         private GameObject CreateCursor()
         {
-            var cursor = CreateSquare("Gaze Cursor", Vector3.zero, new Vector2(0.18f, 0.18f), new Color(0.4f, 1f, 0.9f, 0.9f));
+            var cursor = CreateSpriteObject("Gaze Cursor", Vector3.zero, new Vector2(0.34f, 0.34f), Color.white, LoadArtSprite("gaze_cursor"), 30);
             cursor.GetComponent<SpriteRenderer>().sortingOrder = 30;
             return cursor;
         }
 
-        private GameObject CreateSquare(string name, Vector3 position, Vector2 scale, Color color)
+        private void CreateBackground()
+        {
+            var background = CreateSpriteObject("GazeCraft Neon Background", new Vector3(0f, 0f, 2f), new Vector2(12.5f, 7.05f), Color.white, LoadArtSprite("background_neon"), -20);
+            background.transform.position = new Vector3(0f, 0f, 2f);
+        }
+
+        private GameObject CreateSpriteObject(string name, Vector3 position, Vector2 scale, Color color, Sprite sprite, int sortingOrder)
         {
             var obj = new GameObject(name);
             obj.transform.position = position;
             obj.transform.localScale = new Vector3(scale.x, scale.y, 1f);
 
             var renderer = obj.AddComponent<SpriteRenderer>();
-            renderer.sprite = puzzleSprite != null ? puzzleSprite : CreateWhiteSprite();
+            renderer.sprite = sprite != null ? sprite : CreateWhiteSprite();
             renderer.color = color;
+            renderer.sortingOrder = sortingOrder;
             return obj;
+        }
+
+        private void AttachHighlight(Transform parent, Sprite highlightSprite, int sortingOrder, Vector2 scale)
+        {
+            var highlight = CreateSpriteObject("Highlight", Vector3.zero, scale, Color.white, highlightSprite, sortingOrder);
+            highlight.transform.SetParent(parent, false);
+            highlight.GetComponent<SpriteRenderer>().enabled = false;
+        }
+
+        private void AttachDropShadow(Transform parent)
+        {
+            var shadow = CreateSpriteObject("Soft Shadow", new Vector3(0.05f, -0.07f, 0.1f), new Vector2(1.03f, 1.03f), new Color(0f, 0f, 0f, 0.32f), LoadArtSprite("empty_slot"), 9);
+            shadow.transform.SetParent(parent, false);
+        }
+
+        private Sprite LoadArtSprite(string spriteName)
+        {
+            var resourcePath = "GazeCraftArt/" + spriteName;
+            var sprite = Resources.Load<Sprite>(resourcePath);
+            if (sprite != null)
+            {
+                return sprite;
+            }
+
+            if (RuntimeSprites.TryGetValue(resourcePath, out sprite))
+            {
+                return sprite;
+            }
+
+            var texture = Resources.Load<Texture2D>(resourcePath);
+            if (texture == null)
+            {
+                return fallbackSprite;
+            }
+
+            sprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), texture.width);
+            RuntimeSprites[resourcePath] = sprite;
+            return sprite;
         }
 
         private static Sprite CreateWhiteSprite()

@@ -14,6 +14,7 @@ namespace GazeCraft
         [SerializeField] private float gazedScaleMultiplier = 1.12f;
 
         private SpriteRenderer spriteRenderer;
+        private SpriteRenderer highlightRenderer;
         private Vector3 baseScale;
         private float flashUntil;
         private Color flashColor;
@@ -24,6 +25,13 @@ namespace GazeCraft
         private void Awake()
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
+            var highlight = transform.Find("Highlight");
+            if (highlight != null)
+            {
+                highlightRenderer = highlight.GetComponent<SpriteRenderer>();
+                highlightRenderer.enabled = false;
+            }
+
             baseScale = transform.localScale;
             SetGazed(false);
         }
@@ -51,6 +59,7 @@ namespace GazeCraft
             if (Time.time >= flashUntil)
             {
                 spriteRenderer.color = isGazed ? gazedColor : normalColor;
+                SetHighlight(isGazed);
                 transform.localScale = isGazed ? baseScale * gazedScaleMultiplier : baseScale;
             }
         }
@@ -61,6 +70,7 @@ namespace GazeCraft
             flashColor = correct ? correctColor : wrongColor;
             flashUntil = Time.time + 0.45f;
             spriteRenderer.color = flashColor;
+            SetHighlight(correct);
         }
 
         public void Clear()
@@ -69,6 +79,14 @@ namespace GazeCraft
             transform.localScale = baseScale;
             flashUntil = 0f;
             SetGazed(false);
+        }
+
+        private void SetHighlight(bool enabled)
+        {
+            if (highlightRenderer != null)
+            {
+                highlightRenderer.enabled = enabled;
+            }
         }
     }
 }
