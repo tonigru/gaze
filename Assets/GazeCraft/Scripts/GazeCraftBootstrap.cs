@@ -9,7 +9,7 @@ namespace GazeCraft
         [SerializeField] private bool buildOnStart = true;
         [SerializeField] private Sprite fallbackSprite;
 
-        private const string LayoutVersionObjectName = "GazeCraft Reference Layout v2";
+        private const string LayoutVersionObjectName = "GazeCraft Reference Layout v3";
         private const float ArtPixelsPerUnit = 512f;
         private static readonly Dictionary<string, Sprite> RuntimeSprites = new();
 
@@ -169,7 +169,7 @@ namespace GazeCraft
 
             for (var i = 0; i < slotPositions.Length; i++)
             {
-                var slot = CreateSpriteObject("Slot " + (i + 1), slotPositions[i], new Vector2(1.32f, 1.32f), Color.white, slotSprite, 3);
+                var slot = CreateSpriteObject("Slot " + (i + 1), slotPositions[i], new Vector2(2.62f, 2.62f), Color.white, slotSprite, 3);
                 AttachHighlight(slot.transform, highlightSprite, 4, new Vector2(1.03f, 1.03f));
                 slot.AddComponent<BoxCollider2D>();
                 slot.AddComponent<PuzzleSlot>().Configure(i);
@@ -184,7 +184,7 @@ namespace GazeCraft
             {
                 var pieceId = pieceOrder[i];
                 var sprite = LoadArtSprite("puzzle_piece_" + (pieceId + 1));
-                var piece = CreateSpriteObject("Puzzle Piece " + (pieceId + 1), piecePositions[i], new Vector2(1.12f, 1.12f), Color.white, sprite, 10);
+                var piece = CreateSpriteObject("Puzzle Piece " + (pieceId + 1), piecePositions[i], new Vector2(2.24f, 2.24f), Color.white, sprite, 10);
                 AttachDropShadow(piece.transform, 9);
                 AttachHighlight(piece.transform, highlightSprite, 22, new Vector2(1.02f, 1.02f));
                 piece.AddComponent<BoxCollider2D>();
