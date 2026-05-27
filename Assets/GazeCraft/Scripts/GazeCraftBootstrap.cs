@@ -9,7 +9,7 @@ namespace GazeCraft
         [SerializeField] private bool buildOnStart = true;
         [SerializeField] private Sprite fallbackSprite;
 
-        private const string LayoutVersionObjectName = "GazeCraft Spacious Layout v1";
+        private const string LayoutVersionObjectName = "GazeCraft Raised Layout v1";
         private const float ArtPixelsPerUnit = 512f;
         private static readonly Dictionary<string, Sprite> RuntimeSprites = new();
 
@@ -140,28 +140,28 @@ namespace GazeCraft
 
             var slotPositions = new[]
             {
-                new Vector3(-2.8f, 3.6f, 0f),
-                new Vector3(0.2f, 3.6f, 0f),
-                new Vector3(3.2f, 3.6f, 0f),
-                new Vector3(-2.8f, 0.8f, 0f),
-                new Vector3(0.2f, 0.8f, 0f),
-                new Vector3(3.2f, 0.8f, 0f),
-                new Vector3(-2.8f, -2f, 0f),
-                new Vector3(0.2f, -2f, 0f),
-                new Vector3(3.2f, -2f, 0f)
+                new Vector3(-2.8f, 4.05f, 0f),
+                new Vector3(0.2f, 4.05f, 0f),
+                new Vector3(3.2f, 4.05f, 0f),
+                new Vector3(-2.8f, 1.25f, 0f),
+                new Vector3(0.2f, 1.25f, 0f),
+                new Vector3(3.2f, 1.25f, 0f),
+                new Vector3(-2.8f, -1.55f, 0f),
+                new Vector3(0.2f, -1.55f, 0f),
+                new Vector3(3.2f, -1.55f, 0f)
             };
 
             var piecePositions = new[]
             {
-                new Vector3(-9.6f, -4.95f, 0f),
-                new Vector3(-7.2f, -4.95f, 0f),
-                new Vector3(-4.8f, -4.95f, 0f),
-                new Vector3(-2.4f, -4.95f, 0f),
-                new Vector3(0f, -4.95f, 0f),
-                new Vector3(2.4f, -4.95f, 0f),
-                new Vector3(4.8f, -4.95f, 0f),
-                new Vector3(7.2f, -4.95f, 0f),
-                new Vector3(9.6f, -4.95f, 0f)
+                new Vector3(-9.6f, -3.65f, 0f),
+                new Vector3(-7.2f, -3.65f, 0f),
+                new Vector3(-4.8f, -3.65f, 0f),
+                new Vector3(-2.4f, -3.65f, 0f),
+                new Vector3(0f, -3.65f, 0f),
+                new Vector3(2.4f, -3.65f, 0f),
+                new Vector3(4.8f, -3.65f, 0f),
+                new Vector3(7.2f, -3.65f, 0f),
+                new Vector3(9.6f, -3.65f, 0f)
             };
 
             var slotSprite = LoadArtSprite("empty_slot");
@@ -200,20 +200,34 @@ namespace GazeCraft
             canvasObject.AddComponent<CanvasScaler>();
             canvasObject.AddComponent<GraphicRaycaster>();
 
+            var panelObject = new GameObject("Status Panel");
+            panelObject.transform.SetParent(canvasObject.transform, false);
+            var panel = panelObject.AddComponent<Image>();
+            panel.color = new Color(0.015f, 0.035f, 0.055f, 0.78f);
+
+            var panelRect = panel.GetComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0f, 1f);
+            panelRect.anchorMax = new Vector2(0f, 1f);
+            panelRect.pivot = new Vector2(0f, 1f);
+            panelRect.anchoredPosition = new Vector2(18f, -18f);
+            panelRect.sizeDelta = new Vector2(430f, 120f);
+
             var textObject = new GameObject("Status");
-            textObject.transform.SetParent(canvasObject.transform, false);
+            textObject.transform.SetParent(panelObject.transform, false);
             var text = textObject.AddComponent<Text>();
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.fontSize = 16;
-            text.alignment = TextAnchor.UpperCenter;
+            text.fontSize = 14;
+            text.alignment = TextAnchor.UpperLeft;
             text.color = new Color(0.86f, 0.98f, 1f);
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.verticalOverflow = VerticalWrapMode.Truncate;
 
             var rect = text.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMin = Vector2.zero;
             rect.anchorMax = new Vector2(1f, 1f);
-            rect.pivot = new Vector2(0.5f, 1f);
-            rect.anchoredPosition = new Vector2(0f, -8f);
-            rect.sizeDelta = new Vector2(0f, 72f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.offsetMin = new Vector2(14f, 10f);
+            rect.offsetMax = new Vector2(-14f, -10f);
             return text;
         }
 
@@ -232,7 +246,7 @@ namespace GazeCraft
 
         private void CreateReferenceImage()
         {
-            var reference = CreateSpriteObject("Reference Image", new Vector3(-8.5f, 1.9f, 0f), new Vector2(1.18f, 1.18f), Color.white, LoadArtSprite("puzzle_complete"), 2);
+            var reference = CreateSpriteObject("Reference Image", new Vector3(-8.5f, 2.45f, 0f), new Vector2(1.18f, 1.18f), Color.white, LoadArtSprite("puzzle_complete"), 2);
             AttachDropShadow(reference.transform, 1);
             AttachFrame(reference.transform, LoadArtSprite("highlight_frame"), 3, new Vector2(1.01f, 1.01f));
         }

@@ -5,7 +5,7 @@ using UnityEngine;
 [InitializeOnLoad]
 public static class GazeCraftAutoBuildOnce
 {
-    private const string MarkerPath = "ProjectSettings/GazeCraftSpaciousUiBuilt.marker";
+    private const string MarkerPath = "ProjectSettings/GazeCraftRaisedUiBuilt.marker";
 
     static GazeCraftAutoBuildOnce()
     {
