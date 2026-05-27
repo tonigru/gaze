@@ -9,7 +9,7 @@ namespace GazeCraft
         [SerializeField] private bool buildOnStart = true;
         [SerializeField] private Sprite fallbackSprite;
 
-        private const string LayoutVersionObjectName = "GazeCraft Raised Layout v1";
+        private const string LayoutVersionObjectName = "GazeCraft Raised Layout v2";
         private const float ArtPixelsPerUnit = 512f;
         private static readonly Dictionary<string, Sprite> RuntimeSprites = new();
 
@@ -140,15 +140,15 @@ namespace GazeCraft
 
             var slotPositions = new[]
             {
-                new Vector3(-2.8f, 4.05f, 0f),
-                new Vector3(0.2f, 4.05f, 0f),
-                new Vector3(3.2f, 4.05f, 0f),
-                new Vector3(-2.8f, 1.25f, 0f),
-                new Vector3(0.2f, 1.25f, 0f),
-                new Vector3(3.2f, 1.25f, 0f),
-                new Vector3(-2.8f, -1.55f, 0f),
-                new Vector3(0.2f, -1.55f, 0f),
-                new Vector3(3.2f, -1.55f, 0f)
+                new Vector3(-2.8f, 5.3f, 0f),
+                new Vector3(0.2f, 5.3f, 0f),
+                new Vector3(3.2f, 5.3f, 0f),
+                new Vector3(-2.8f, 2.5f, 0f),
+                new Vector3(0.2f, 2.5f, 0f),
+                new Vector3(3.2f, 2.5f, 0f),
+                new Vector3(-2.8f, -0.3f, 0f),
+                new Vector3(0.2f, -0.3f, 0f),
+                new Vector3(3.2f, -0.3f, 0f)
             };
 
             var piecePositions = new[]
