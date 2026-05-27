@@ -9,6 +9,7 @@ namespace GazeCraft
         [SerializeField] private bool buildOnStart = true;
         [SerializeField] private Sprite fallbackSprite;
 
+        private const string LayoutVersionObjectName = "GazeCraft Compact Layout";
         private static readonly Dictionary<string, Sprite> RuntimeSprites = new();
 
         private void Start()
@@ -25,7 +26,8 @@ namespace GazeCraft
             return FindAnyObjectByType<GazeCraftGameManager>() == null
                 || FindObjectsByType<PuzzlePiece>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Length != 9
                 || FindObjectsByType<PuzzleSlot>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Length != 9
-                || GameObject.Find("GazeCraft Neon Background") == null;
+                || GameObject.Find("GazeCraft Neon Background") == null
+                || GameObject.Find(LayoutVersionObjectName) == null;
         }
 
         private void ClearGeneratedRuntimeScene()
@@ -34,6 +36,7 @@ namespace GazeCraft
             DestroyNamed("GazeCraft UI");
             DestroyNamed("Gaze Cursor");
             DestroyNamed("GazeCraft Neon Background");
+            DestroyNamed(LayoutVersionObjectName);
 
             foreach (var piece in FindObjectsByType<PuzzlePiece>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
@@ -85,6 +88,7 @@ namespace GazeCraft
             AssignPrivateReference(manager, "gazeCursor", cursor.transform);
 
             CreateBoard();
+            new GameObject(LayoutVersionObjectName);
             manager.RefreshSceneReferences();
         }
 
@@ -162,8 +166,8 @@ namespace GazeCraft
 
             for (var i = 0; i < slotPositions.Length; i++)
             {
-                var slot = CreateSpriteObject("Slot " + (i + 1), slotPositions[i], new Vector2(1.12f, 1.12f), Color.white, slotSprite, 3);
-                AttachHighlight(slot.transform, highlightSprite, 4, new Vector2(1.05f, 1.05f));
+                var slot = CreateSpriteObject("Slot " + (i + 1), slotPositions[i], new Vector2(1.08f, 1.08f), Color.white, slotSprite, 3);
+                AttachHighlight(slot.transform, highlightSprite, 4, new Vector2(1.03f, 1.03f));
                 slot.AddComponent<BoxCollider2D>();
                 slot.AddComponent<PuzzleSlot>().Configure(i);
             }
@@ -177,9 +181,9 @@ namespace GazeCraft
             {
                 var pieceId = pieceOrder[i];
                 var sprite = LoadArtSprite("puzzle_piece_" + (pieceId + 1));
-                var piece = CreateSpriteObject("Puzzle Piece " + (pieceId + 1), piecePositions[i], new Vector2(0.95f, 0.95f), Color.white, sprite, 10);
+                var piece = CreateSpriteObject("Puzzle Piece " + (pieceId + 1), piecePositions[i], new Vector2(0.88f, 0.88f), Color.white, sprite, 10);
                 AttachDropShadow(piece.transform);
-                AttachHighlight(piece.transform, highlightSprite, 22, new Vector2(1.04f, 1.04f));
+                AttachHighlight(piece.transform, highlightSprite, 22, new Vector2(1.02f, 1.02f));
                 piece.AddComponent<BoxCollider2D>();
                 piece.AddComponent<PuzzlePiece>().Configure(pieceId, piecePositions[i]);
             }
@@ -197,7 +201,7 @@ namespace GazeCraft
             textObject.transform.SetParent(canvasObject.transform, false);
             var text = textObject.AddComponent<Text>();
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.fontSize = 22;
+            text.fontSize = 16;
             text.alignment = TextAnchor.UpperCenter;
             text.color = new Color(0.86f, 0.98f, 1f);
 
@@ -205,14 +209,14 @@ namespace GazeCraft
             rect.anchorMin = new Vector2(0f, 1f);
             rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(0.5f, 1f);
-            rect.anchoredPosition = new Vector2(0f, -12f);
-            rect.sizeDelta = new Vector2(0f, 120f);
+            rect.anchoredPosition = new Vector2(0f, -8f);
+            rect.sizeDelta = new Vector2(0f, 72f);
             return text;
         }
 
         private GameObject CreateCursor()
         {
-            var cursor = CreateSpriteObject("Gaze Cursor", Vector3.zero, new Vector2(0.34f, 0.34f), Color.white, LoadArtSprite("gaze_cursor"), 30);
+            var cursor = CreateSpriteObject("Gaze Cursor", Vector3.zero, new Vector2(0.22f, 0.22f), Color.white, LoadArtSprite("gaze_cursor"), 30);
             cursor.GetComponent<SpriteRenderer>().sortingOrder = 30;
             return cursor;
         }
@@ -245,7 +249,7 @@ namespace GazeCraft
 
         private void AttachDropShadow(Transform parent)
         {
-            var shadow = CreateSpriteObject("Soft Shadow", new Vector3(0.05f, -0.07f, 0.1f), new Vector2(1.03f, 1.03f), new Color(0f, 0f, 0f, 0.32f), LoadArtSprite("empty_slot"), 9);
+            var shadow = CreateSpriteObject("Soft Shadow", new Vector3(0.03f, -0.04f, 0.1f), new Vector2(0.94f, 0.94f), new Color(0f, 0f, 0f, 0.22f), LoadArtSprite("empty_slot"), 9);
             shadow.transform.SetParent(parent, false);
         }
 

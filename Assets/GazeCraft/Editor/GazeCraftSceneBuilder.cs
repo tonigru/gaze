@@ -44,6 +44,7 @@ public static class GazeCraftSceneBuilder
 
             importer.textureType = TextureImporterType.Sprite;
             importer.spriteImportMode = SpriteImportMode.Single;
+            importer.spritePixelsPerUnit = 512f;
             importer.alphaIsTransparency = true;
             importer.filterMode = FilterMode.Bilinear;
             importer.textureCompression = TextureImporterCompression.Uncompressed;
