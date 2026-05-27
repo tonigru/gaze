@@ -9,7 +9,8 @@ namespace GazeCraft
         [SerializeField] private bool buildOnStart = true;
         [SerializeField] private Sprite fallbackSprite;
 
-        private const string LayoutVersionObjectName = "GazeCraft Compact Layout";
+        private const string LayoutVersionObjectName = "GazeCraft Reference Layout v2";
+        private const float ArtPixelsPerUnit = 512f;
         private static readonly Dictionary<string, Sprite> RuntimeSprites = new();
 
         private void Start()
@@ -36,6 +37,7 @@ namespace GazeCraft
             DestroyNamed("GazeCraft UI");
             DestroyNamed("Gaze Cursor");
             DestroyNamed("GazeCraft Neon Background");
+            DestroyNamed("Reference Image");
             DestroyNamed(LayoutVersionObjectName);
 
             foreach (var piece in FindObjectsByType<PuzzlePiece>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -134,31 +136,32 @@ namespace GazeCraft
         private void CreateBoard()
         {
             CreateBackground();
+            CreateReferenceImage();
 
             var slotPositions = new[]
             {
-                new Vector3(-2.25f, 3.05f, 0f),
+                new Vector3(-1.8f, 3.05f, 0f),
                 new Vector3(0f, 3.05f, 0f),
-                new Vector3(2.25f, 3.05f, 0f),
-                new Vector3(-2.25f, 1.62f, 0f),
-                new Vector3(0f, 1.62f, 0f),
-                new Vector3(2.25f, 1.62f, 0f),
-                new Vector3(-2.25f, 0.19f, 0f),
-                new Vector3(0f, 0.19f, 0f),
-                new Vector3(2.25f, 0.19f, 0f)
+                new Vector3(1.8f, 3.05f, 0f),
+                new Vector3(-1.8f, 1.38f, 0f),
+                new Vector3(0f, 1.38f, 0f),
+                new Vector3(1.8f, 1.38f, 0f),
+                new Vector3(-1.8f, -0.29f, 0f),
+                new Vector3(0f, -0.29f, 0f),
+                new Vector3(1.8f, -0.29f, 0f)
             };
 
             var piecePositions = new[]
             {
-                new Vector3(-4.75f, -2.95f, 0f),
-                new Vector3(-3.55f, -2.95f, 0f),
-                new Vector3(-2.35f, -2.95f, 0f),
-                new Vector3(-1.15f, -2.95f, 0f),
-                new Vector3(0.05f, -2.95f, 0f),
-                new Vector3(1.25f, -2.95f, 0f),
-                new Vector3(2.45f, -2.95f, 0f),
-                new Vector3(3.65f, -2.95f, 0f),
-                new Vector3(4.85f, -2.95f, 0f)
+                new Vector3(-5.6f, -3.35f, 0f),
+                new Vector3(-4.2f, -3.35f, 0f),
+                new Vector3(-2.8f, -3.35f, 0f),
+                new Vector3(-1.4f, -3.35f, 0f),
+                new Vector3(0f, -3.35f, 0f),
+                new Vector3(1.4f, -3.35f, 0f),
+                new Vector3(2.8f, -3.35f, 0f),
+                new Vector3(4.2f, -3.35f, 0f),
+                new Vector3(5.6f, -3.35f, 0f)
             };
 
             var slotSprite = LoadArtSprite("empty_slot");
@@ -166,7 +169,7 @@ namespace GazeCraft
 
             for (var i = 0; i < slotPositions.Length; i++)
             {
-                var slot = CreateSpriteObject("Slot " + (i + 1), slotPositions[i], new Vector2(1.08f, 1.08f), Color.white, slotSprite, 3);
+                var slot = CreateSpriteObject("Slot " + (i + 1), slotPositions[i], new Vector2(1.32f, 1.32f), Color.white, slotSprite, 3);
                 AttachHighlight(slot.transform, highlightSprite, 4, new Vector2(1.03f, 1.03f));
                 slot.AddComponent<BoxCollider2D>();
                 slot.AddComponent<PuzzleSlot>().Configure(i);
@@ -181,8 +184,8 @@ namespace GazeCraft
             {
                 var pieceId = pieceOrder[i];
                 var sprite = LoadArtSprite("puzzle_piece_" + (pieceId + 1));
-                var piece = CreateSpriteObject("Puzzle Piece " + (pieceId + 1), piecePositions[i], new Vector2(0.88f, 0.88f), Color.white, sprite, 10);
-                AttachDropShadow(piece.transform);
+                var piece = CreateSpriteObject("Puzzle Piece " + (pieceId + 1), piecePositions[i], new Vector2(1.12f, 1.12f), Color.white, sprite, 10);
+                AttachDropShadow(piece.transform, 9);
                 AttachHighlight(piece.transform, highlightSprite, 22, new Vector2(1.02f, 1.02f));
                 piece.AddComponent<BoxCollider2D>();
                 piece.AddComponent<PuzzlePiece>().Configure(pieceId, piecePositions[i]);
@@ -227,6 +230,13 @@ namespace GazeCraft
             background.transform.position = new Vector3(0f, 0f, 2f);
         }
 
+        private void CreateReferenceImage()
+        {
+            var reference = CreateSpriteObject("Reference Image", new Vector3(-7.05f, 1.35f, 0f), new Vector2(1.28f, 1.28f), Color.white, LoadArtSprite("puzzle_complete"), 2);
+            AttachDropShadow(reference.transform, 1);
+            AttachFrame(reference.transform, LoadArtSprite("highlight_frame"), 3, new Vector2(1.01f, 1.01f));
+        }
+
         private GameObject CreateSpriteObject(string name, Vector3 position, Vector2 scale, Color color, Sprite sprite, int sortingOrder)
         {
             var obj = new GameObject(name);
@@ -247,9 +257,15 @@ namespace GazeCraft
             highlight.GetComponent<SpriteRenderer>().enabled = false;
         }
 
-        private void AttachDropShadow(Transform parent)
+        private void AttachFrame(Transform parent, Sprite frameSprite, int sortingOrder, Vector2 scale)
         {
-            var shadow = CreateSpriteObject("Soft Shadow", new Vector3(0.03f, -0.04f, 0.1f), new Vector2(0.94f, 0.94f), new Color(0f, 0f, 0f, 0.22f), LoadArtSprite("empty_slot"), 9);
+            var frame = CreateSpriteObject("Frame", Vector3.zero, scale, new Color(1f, 1f, 1f, 0.82f), frameSprite, sortingOrder);
+            frame.transform.SetParent(parent, false);
+        }
+
+        private void AttachDropShadow(Transform parent, int sortingOrder)
+        {
+            var shadow = CreateSpriteObject("Soft Shadow", new Vector3(0.04f, -0.05f, 0.1f), new Vector2(0.98f, 0.98f), new Color(0f, 0f, 0f, 0.22f), LoadArtSprite("empty_slot"), sortingOrder);
             shadow.transform.SetParent(parent, false);
         }
 
@@ -273,7 +289,7 @@ namespace GazeCraft
                 return fallbackSprite;
             }
 
-            sprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), texture.width);
+            sprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), ArtPixelsPerUnit);
             RuntimeSprites[resourcePath] = sprite;
             return sprite;
         }
