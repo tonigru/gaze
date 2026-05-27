@@ -12,9 +12,11 @@ namespace GazeCraft
         [SerializeField] private Camera targetCamera;
         [SerializeField] private bool useMouseFallback = true;
         [SerializeField] private bool preferRawTobiiSdk = true;
-        [SerializeField] private Vector2 displayPointOffset = new Vector2(0f, 0.08f);
+        [SerializeField] private bool restrictGazeToGameView = true;
+        [SerializeField] private Vector4 gameViewDisplayRect = new Vector4(0f, 0.12f, 1f, 0.83f);
+        [SerializeField] private Vector2 displayPointOffset = Vector2.zero;
         [SerializeField] private Vector2 displayPointScale = Vector2.one;
-        [SerializeField] private bool applyDefaultVerticalCorrection = true;
+        [SerializeField] private bool applyDefaultVerticalCorrection;
         [SerializeField] private bool allowKeyboardCalibration = true;
         [SerializeField] private float keyboardCalibrationStep = 0.01f;
 
@@ -36,6 +38,7 @@ namespace GazeCraft
         public Vector2 LastRawDisplayPoint { get; private set; }
         public Vector2 LastDisplayPoint { get; private set; }
         public Vector2 DisplayPointOffset => displayPointOffset;
+        public Vector4 GameViewDisplayRect => GetSafeGameViewDisplayRect();
         public int TobiiEventCount => streamEventCount + rawEventCount;
 
         private void Start()
@@ -45,7 +48,12 @@ namespace GazeCraft
                 displayPointScale = Vector2.one;
             }
 
-            if (applyDefaultVerticalCorrection && Mathf.Approximately(displayPointOffset.y, 0f))
+            if (restrictGazeToGameView && applyDefaultVerticalCorrection)
+            {
+                displayPointOffset = Vector2.zero;
+                applyDefaultVerticalCorrection = false;
+            }
+            else if (applyDefaultVerticalCorrection && Mathf.Approximately(displayPointOffset.y, 0f))
             {
                 displayPointOffset.y = 0.08f;
             }
@@ -256,12 +264,30 @@ namespace GazeCraft
 
         private Vector2 ApplyDisplayCalibration(Vector2 displayPoint)
         {
-            var centered = displayPoint - new Vector2(0.5f, 0.5f);
+            var gameViewPoint = restrictGazeToGameView ? MapDisplayPointToGameView(displayPoint) : displayPoint;
+            var centered = gameViewPoint - new Vector2(0.5f, 0.5f);
             var calibrated = new Vector2(
                 0.5f + centered.x * displayPointScale.x + displayPointOffset.x,
                 0.5f + centered.y * displayPointScale.y + displayPointOffset.y);
 
             return new Vector2(Mathf.Clamp01(calibrated.x), Mathf.Clamp01(calibrated.y));
+        }
+
+        private Vector2 MapDisplayPointToGameView(Vector2 displayPoint)
+        {
+            var rect = GetSafeGameViewDisplayRect();
+            var x = Mathf.InverseLerp(rect.x, rect.x + rect.z, displayPoint.x);
+            var y = Mathf.InverseLerp(rect.y, rect.y + rect.w, displayPoint.y);
+            return new Vector2(Mathf.Clamp01(x), Mathf.Clamp01(y));
+        }
+
+        private Vector4 GetSafeGameViewDisplayRect()
+        {
+            var x = Mathf.Clamp01(gameViewDisplayRect.x);
+            var y = Mathf.Clamp01(gameViewDisplayRect.y);
+            var width = Mathf.Clamp(gameViewDisplayRect.z, 0.05f, 1f - x);
+            var height = Mathf.Clamp(gameViewDisplayRect.w, 0.05f, 1f - y);
+            return new Vector4(x, y, width, height);
         }
 
         private void UpdateKeyboardCalibration()
@@ -279,7 +305,7 @@ namespace GazeCraft
 
             if (keyboard.homeKey.wasPressedThisFrame)
             {
-                displayPointOffset = new Vector2(0f, 0.08f);
+                displayPointOffset = restrictGazeToGameView ? Vector2.zero : new Vector2(0f, 0.08f);
                 return;
             }
 
